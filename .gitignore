@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.env
+.ipynb_checkpoints/
+*.exec.ipynb
+# dados brutos do SP156 são grandes: não suba para o GitHub. Mantenha só o recorte usado.
+data/*bruto*.csv
+
+# CSV de treino (63 MB) fica fora do repositório; vai no zip da entrega
+data/dados_sp156.csv

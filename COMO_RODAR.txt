@@ -1,0 +1,150 @@
+ZELABAIRRO - IA & CHATBOT - COMO RODAR E REPLICAR OS RESULTADOS
+Turma 1TDSPV - Global Solution 2026/2
+
+Requisito: Python 3.11 ou mais novo (modelos treinados com Python 3.12 e scikit-learn 1.9.1).
+Para conferir: python --version
+
+Rode UM comando por vez. Linhas que começam com # são explicações (não digite).
+
+======================================================================
+PARTE 1 - INSTALAR (só na primeira vez)
+======================================================================
+
+--- WINDOWS (PowerShell) ---
+
+# 1. Entre na pasta do projeto (troque pelo seu caminho). É a pasta que contém app.py:
+#    se ao extrair o ZIP aparecer uma pasta dentro de outra, entre na mais interna.
+cd C:\Users\SeuNome\Downloads\zelabairro-ia
+
+# 2. Confira se está na pasta certa: devem aparecer app.py, requirements.txt, models, chatbot
+dir
+
+# 3. Crie o ambiente virtual
+python -m venv .venv
+
+# 4. Ative o ambiente (aparece "(.venv)" no começo da linha)
+.venv\Scripts\activate
+
+# Se der erro "a execução de scripts foi desabilitada", rode a linha abaixo,
+# responda S e repita o passo 4:
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
+# 5. Instale as dependências (leva alguns minutos)
+pip install -r requirements.txt
+
+--- MAC / LINUX (Terminal) ---
+
+cd ~/Downloads/zelabairro-ia
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+======================================================================
+PARTE 2 - INICIAR A API E O CHATBOT
+======================================================================
+
+# Windows (das próximas vezes, só estes 3 comandos):
+cd C:\Users\SeuNome\Downloads\zelabairro-ia
+.venv\Scripts\activate
+python app.py
+
+# Mac / Linux:
+cd ~/Downloads/zelabairro-ia
+source .venv/bin/activate
+python app.py
+
+# O comando fica rodando (é normal). Quando aparecer
+# "Running on http://127.0.0.1:5000", abra no navegador:
+#
+#     http://localhost:5000          -> tela do chatbot
+#     http://localhost:5000/health   -> deve mostrar {"status": "ok"}
+#
+# Para parar: Ctrl + C no terminal.
+
+# Frases para testar no chat:
+#   Tem um buraco enorme na minha rua na Lapa
+#   Tem um poste apagado na Pinheiros
+#   O que significa prioridade ALTA?
+
+# Sem a API Java ligada, o chatbot avisa que não conseguiu consultar
+# ocorrências e pede a subprefeitura. Isso é o comportamento da RN12, não erro.
+
+======================================================================
+PARTE 3 - TESTAR OS ENDPOINTS DE PREVISÃO (com o app.py rodando)
+======================================================================
+
+# Abra um SEGUNDO terminal (o primeiro está ocupado com o app.py).
+
+# Windows (PowerShell):
+Invoke-RestMethod -Method Post -Uri http://localhost:5000/prever/prazo -ContentType "application/json" -Body '{"categoria":"Buraco na via","subprefeitura":"Lapa","mes":11,"dia_semana":2}'
+Invoke-RestMethod -Method Post -Uri http://localhost:5000/prever/atraso -ContentType "application/json" -Body '{"categoria":"Buraco na via","subprefeitura":"Lapa","mes":11,"dia_semana":2}'
+
+# Mac / Linux:
+curl -X POST http://localhost:5000/prever/prazo -H "Content-Type: application/json" -d '{"categoria":"Buraco na via","subprefeitura":"Lapa","mes":11,"dia_semana":2}'
+curl -X POST http://localhost:5000/prever/atraso -H "Content-Type: application/json" -d '{"categoria":"Buraco na via","subprefeitura":"Lapa","mes":11,"dia_semana":2}'
+
+# Resultado esperado com os modelos entregues:
+#   prazo  -> prazo_previsto_dias: 16
+#   atraso -> risco_atraso: S, probabilidade: 0.66
+
+======================================================================
+PARTE 4 - RODAR OS TESTES AUTOMÁTICOS
+======================================================================
+
+# No segundo terminal, dentro da pasta e com o ambiente ativado:
+python -m pytest tests -q
+# Esperado: 99 passed
+
+======================================================================
+PARTE 5 - REPLICAR OS NOTEBOOKS E OS MODELOS
+======================================================================
+
+# Os notebooks já estão executados, com as saídas salvas. Para refazer:
+jupyter notebook
+# No navegador, abra a pasta notebooks e rode na ordem:
+#   01_eda.ipynb  ->  02_modelo_prazo.ipynb  ->  03_modelo_atraso.ipynb
+# Em cada um: menu "Run" > "Run All Cells" e depois salve (Ctrl + S).
+# O 01 e o 03 levam poucos minutos; o 02 pode levar até ~3 horas (várias florestas
+# com 785 mil chamados). O 02 e o 03 regravam models/*.joblib.
+# As métricas devem bater com as do README (seção 3.2), pois a semente é fixa (42).
+
+======================================================================
+PARTE 6 - (OPCIONAL) REFAZER data/dados_sp156.csv A PARTIR DO SP156
+======================================================================
+
+# Só é necessário se mudar prazos, de-para ou dados. O CSV pronto já vem no projeto.
+# 1. Baixe do Portal de Dados Abertos (dados.prefeitura.sp.gov.br, "Dados do SP156")
+#    os arquivos do 1º tri/2020 ao 3º tri/2023 e coloque numa pasta "uploads"
+#    ao lado da pasta zelabairro-ia.
+# 2. Rode (em uma linha só):
+python scripts/preparar_dados.py --entrada "../uploads/*trimestre-2020.csv" "../uploads/arquivo-final-*trim_-202*.csv" "../uploads/arquivo-final-2-trim_-2021.xlsx" --inicio 2020-01-01 --fim 2023-09-30
+# Esperado no final: 982,475 linhas. Depois rode de novo os notebooks (Parte 5).
+
+======================================================================
+PARTE 7 - (OPCIONAL) LIGAR O CHATBOT À API JAVA DO GRUPO
+======================================================================
+
+# Defina as variáveis ANTES do python app.py (troque pelos endereços reais).
+# Windows (PowerShell):
+$env:ZELA_API_URL="http://localhost:8080"
+$env:FRONT_URL="https://endereco-do-front.vercel.app"
+python app.py
+
+# Mac / Linux:
+ZELA_API_URL=http://localhost:8080 FRONT_URL=https://endereco-do-front.vercel.app python app.py
+
+======================================================================
+PROBLEMAS COMUNS
+======================================================================
+
+* "python não é reconhecido": instale o Python em python.org e marque
+  "Add Python to PATH" na instalação. Depois feche e reabra o terminal.
+* "No module named ...": o ambiente não está ativado (falta o "(.venv)").
+  Rode o activate de novo.
+* /health responde 503 ou erro ao carregar o modelo: confira se a pasta models
+  tem modelo_prazo.joblib e modelo_atraso.joblib, e se o scikit-learn é o 1.9.1:
+      pip show scikit-learn
+* "Address already in use" / porta 5000 ocupada: feche o outro app.py
+  ou rode em outra porta:
+      Windows:      $env:PORT="5001"; python app.py
+      Mac/Linux:    PORT=5001 python app.py

@@ -1,0 +1,679 @@
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080f1d">
+<title>ZelaBairro | Assistente Inteligente</title>
+
+<style>
+:root {
+  --fundo: #080f1d;
+  --painel: #111c30;
+  --painel2: #192840;
+  --verde: #3b82f6;
+  --verde2: #2563eb;
+  --ciano: #67d5f5;
+  --ambar: #f5b942;
+  --texto: #edf3fc;
+  --texto2: #9aabc2;
+  --borda: rgba(103,213,245,.16);
+  --erro: #ff7070;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(ellipse at 15% 15%, rgba(59,130,246,.14), transparent 38%),
+    radial-gradient(ellipse at 85% 85%, rgba(103,213,245,.08), transparent 35%),
+    var(--fundo);
+  color: var(--texto);
+  font-size: 16px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Estrutura principal */
+
+.app {
+  width: 100%;
+  max-width: 850px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgba(8,17,32,.96);
+  border-left: 1px solid var(--borda);
+  border-right: 1px solid var(--borda);
+  box-shadow: 0 0 80px rgba(37,99,235,.08);
+  position: relative;
+}
+
+/* Cabeçalho */
+
+header {
+  background: linear-gradient(120deg, #101c32, #192d4b);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-bottom: 1px solid var(--borda);
+  position: relative;
+}
+
+header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #3b82f6, #67d5f5, transparent);
+  opacity: .7;
+}
+
+header .logo {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #2563eb, #67d5f5);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 25px;
+  font-weight: 900;
+  box-shadow: 0 0 25px rgba(59,130,246,.3);
+}
+
+.header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+header h1 {
+  font-size: 19px;
+  letter-spacing: .3px;
+  margin: 0 0 4px;
+  font-weight: 750;
+}
+
+header p {
+  margin: 0;
+  color: var(--texto2);
+  font-size: 13px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  letter-spacing: .7px;
+  color: #67d5f5;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 12px #3b82f6;
+}
+
+/* Conversa */
+
+#conversa {
+  flex: 1;
+  overflow-y: auto;
+  padding: 25px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scroll-behavior: smooth;
+}
+
+#conversa::-webkit-scrollbar {
+  width: 6px;
+}
+
+#conversa::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#conversa::-webkit-scrollbar-thumb {
+  background: #304765;
+  border-radius: 10px;
+}
+
+.msg {
+  max-width: 85%;
+  padding: 13px 17px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  animation: aparecer .25s ease;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bot {
+  background: linear-gradient(135deg, #17243a, #111e32);
+  border: 1px solid rgba(103,213,245,.18);
+  border-bottom-left-radius: 4px;
+  align-self: flex-start;
+  color: #e5efff;
+  box-shadow: 0 5px 20px rgba(0,0,0,.12);
+}
+
+.user {
+  background: linear-gradient(135deg, #2459bd, #347ff0);
+  color: #fff;
+  border: 1px solid rgba(103,213,245,.3);
+  border-bottom-right-radius: 4px;
+  align-self: flex-end;
+  box-shadow: 0 5px 20px rgba(37,99,235,.15);
+}
+
+.erro {
+  background: rgba(120,30,30,.18);
+  color: #ffaaaa;
+  border: 1px solid rgba(255,100,100,.3);
+  align-self: flex-start;
+}
+
+/* Indicador de digitação */
+
+.digitando {
+  align-self: flex-start;
+  display: flex;
+  gap: 6px;
+  padding: 16px 19px;
+}
+
+.digitando span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #67d5f5;
+  box-shadow: 0 0 8px #67d5f5;
+  animation: pulo 1s infinite;
+}
+
+.digitando span:nth-child(2) {
+  animation-delay: .15s;
+}
+
+.digitando span:nth-child(3) {
+  animation-delay: .3s;
+}
+
+@keyframes pulo {
+  0%, 80%, 100% {
+    opacity: .3;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Sugestões */
+
+#sugestoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 10px 24px 15px;
+}
+
+#sugestoes button {
+  background: rgba(59,130,246,.07);
+  color: #8bdcf5;
+  border: 1px solid rgba(103,213,245,.3);
+  border-radius: 10px;
+  padding: 10px 15px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 42px;
+  transition: .2s ease;
+}
+
+#sugestoes button:hover {
+  background: rgba(59,130,246,.18);
+  border-color: #3b82f6;
+  box-shadow: 0 0 15px rgba(59,130,246,.15);
+  transform: translateY(-2px);
+}
+
+/* Área de mensagem */
+
+form {
+  display: flex;
+  gap: 10px;
+  padding: 17px 24px;
+  border-top: 1px solid var(--borda);
+  background: rgba(12,23,40,.98);
+}
+
+form label {
+  position: absolute;
+  left: -9999px;
+}
+
+#texto {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 15px;
+  padding: 14px 17px;
+  color: #edf3fc;
+  background: #111e32;
+  border: 1px solid rgba(103,213,245,.2);
+  border-radius: 12px;
+  min-height: 50px;
+  outline: none;
+  transition: .2s;
+}
+
+#texto::placeholder {
+  color: #8294ad;
+}
+
+#texto:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+}
+
+#enviar {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 0 24px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  min-height: 50px;
+  transition: .2s;
+}
+
+#enviar:hover:not(:disabled) {
+  box-shadow: 0 0 22px rgba(59,130,246,.35);
+  transform: translateY(-2px);
+}
+
+#enviar:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--ambar);
+  outline-offset: 3px;
+}
+
+/* Rodapé */
+
+.rodape {
+  font-size: 11px;
+  color: #8294ad;
+  text-align: center;
+  padding: 0 16px 13px;
+  margin: 0;
+  background: rgba(12,23,40,.98);
+}
+
+/* Responsividade */
+
+@media (max-width: 600px) {
+  body {
+    font-size: 15px;
+  }
+
+  .app {
+    border: none;
+  }
+
+  header {
+    padding: 15px 16px;
+  }
+
+  header .logo {
+    width: 45px;
+    height: 45px;
+    border-radius: 13px;
+  }
+
+  header h1 {
+    font-size: 16px;
+  }
+
+  header p {
+    font-size: 11px;
+  }
+
+  .status {
+    font-size: 9px;
+  }
+
+  #conversa {
+    padding: 19px 15px;
+  }
+
+  .msg {
+    max-width: 93%;
+    font-size: 14px;
+  }
+
+  #sugestoes {
+    padding: 8px 15px 12px;
+    gap: 7px;
+  }
+
+  #sugestoes button {
+    font-size: 12px;
+    padding: 9px 12px;
+  }
+
+  form {
+    padding: 12px 14px;
+    gap: 7px;
+  }
+
+  #texto {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  #enviar {
+    padding: 0 17px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 350px) {
+  .status {
+    display: none;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <header>
+    <div class="logo" aria-hidden="true">Z</div>
+
+    <div class="header-info">
+      <h1>ZelaBairro</h1>
+      <p>Assistente inteligente da sua comunidade</p>
+    </div>
+
+    <div class="status">
+      <span class="status-dot"></span>
+      ASSISTENTE VIRTUAL
+    </div>
+  </header>
+
+  <main
+    id="conversa"
+    role="log"
+    aria-live="polite"
+    aria-label="Conversa com o assistente">
+  </main>
+
+  <div id="sugestoes" aria-label="Sugestões de mensagens"></div>
+
+  <form id="form" autocomplete="off">
+
+    <label for="texto">Escreva sua mensagem</label>
+
+    <input
+      id="texto"
+      type="text"
+      maxlength="2000"
+      placeholder="Digite sua mensagem..."
+      enterkeyhint="send">
+
+    <button id="enviar" type="submit">
+      Enviar
+    </button>
+
+  </form>
+
+  <p class="rodape">
+    As previsões de prazo são estimativas feitas por inteligência artificial, não garantias.
+  </p>
+
+</div>
+
+<script>
+(function () {
+
+  var conversa = document.getElementById('conversa');
+  var sugestoes = document.getElementById('sugestoes');
+  var form = document.getElementById('form');
+  var texto = document.getElementById('texto');
+  var botao = document.getElementById('enviar');
+  var sessao = null;
+
+  try {
+    sessao = sessionStorage.getItem('zela_sessao');
+  } catch (e) {}
+
+  function bolha(tipo, conteudo) {
+    var d = document.createElement('div');
+    d.className = 'msg ' + tipo;
+    d.textContent = conteudo;
+
+    conversa.appendChild(d);
+    conversa.scrollTop = conversa.scrollHeight;
+
+    return d;
+  }
+
+  function mostrarSugestoes(lista) {
+    sugestoes.textContent = '';
+
+    (lista || []).forEach(function (s) {
+
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = s;
+
+      b.addEventListener('click', function () {
+        enviar(s);
+      });
+
+      sugestoes.appendChild(b);
+
+    });
+  }
+
+  function digitando(ligado) {
+    var antigo = document.getElementById('digitando');
+
+    if (antigo) antigo.remove();
+    if (!ligado) return;
+
+    var d = document.createElement('div');
+
+    d.id = 'digitando';
+    d.className = 'msg bot digitando';
+
+    d.setAttribute('role', 'status');
+    d.setAttribute('aria-label', 'O assistente está escrevendo');
+
+    d.innerHTML = '<span></span><span></span><span></span>';
+
+    conversa.appendChild(d);
+    conversa.scrollTop = conversa.scrollHeight;
+  }
+
+  function ocupado(sim) {
+    botao.disabled = sim;
+    texto.disabled = sim;
+
+    if (!sim) texto.focus();
+  }
+
+  function chamar(url, opcoes) {
+    return fetch(url, opcoes).then(function (r) {
+
+      return r.json().then(function (j) {
+
+        return {
+          ok: r.ok,
+          corpo: j
+        };
+
+      });
+
+    });
+  }
+
+  function tratar(res) {
+    var j = res.corpo || {};
+
+    if (j.sessao) {
+
+      sessao = j.sessao;
+
+      try {
+        sessionStorage.setItem('zela_sessao', sessao);
+      } catch (e) {}
+
+    }
+
+    if (j.resposta) {
+      bolha(res.ok ? 'bot' : 'erro', j.resposta);
+    }
+    else if (j.erro) {
+      bolha('erro', j.erro);
+    }
+
+    mostrarSugestoes(j.sugestoes);
+  }
+
+  function falhaDeRede() {
+    bolha(
+      'erro',
+      'Não consegui falar com o servidor. Verifique sua internet e tente de novo em instantes.'
+    );
+  }
+
+  function enviar(msg) {
+    msg = (msg || '').trim();
+
+    if (!msg) return;
+
+    bolha('user', msg);
+
+    texto.value = '';
+    mostrarSugestoes([]);
+    digitando(true);
+    ocupado(true);
+
+    chamar('/chat', {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json'
+      },
+
+      body: JSON.stringify({
+        sessao: sessao,
+        mensagem: msg
+      })
+
+    })
+    .then(function (r) {
+
+      digitando(false);
+      tratar(r);
+
+    })
+    .catch(function () {
+
+      digitando(false);
+      falhaDeRede();
+
+    })
+    .then(function () {
+
+      ocupado(false);
+
+    });
+  }
+
+  form.addEventListener('submit', function (e) {
+
+    e.preventDefault();
+    enviar(texto.value);
+
+  });
+
+  digitando(true);
+  ocupado(true);
+
+  chamar('/chat/inicio')
+    .then(function (r) {
+
+      digitando(false);
+      tratar(r);
+
+    })
+    .catch(function () {
+
+      digitando(false);
+      falhaDeRede();
+
+    })
+    .then(function () {
+
+      ocupado(false);
+
+    });
+
+})();
+</script>
+
+</body>
+</html>
